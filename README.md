@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Expense Tracker
 
-## Getting Started
+A production-ready full-stack expense tracking application built for reliability and correctness under real-world conditions like network retries, refreshes, and slow connections.
 
-First, run the development server:
+## 🚀 Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Database**: MongoDB with Mongoose ODM
+- **Styling**: Tailwind CSS v4
+- **Deployment**: Vercel-ready
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ✨ Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- ✅ Add expenses with amount, category, description, and date
+- ✅ View expenses sorted by date (newest/oldest)
+- ✅ Filter expenses by category
+- ✅ Calculate total of visible expenses
+- ✅ Idempotent API for safe retries
+- ✅ Integer-based money storage (no floating-point errors)
+- ✅ Real-time validation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Setup Instructions
 
-## Learn More
+### Prerequisites
 
-To learn more about Next.js, take a look at the following resources:
+- Node.js 18+
+- MongoDB (local or Atlas)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Installation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Clone the repository**
 
-## Deploy on Vercel
+   ```bash
+   git clone <repository-url>
+   cd expenses-tracker
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. **Install dependencies**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details..
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**
+
+   Create a `.env.local` file in the root directory:
+
+   ```env
+   # MONGO_URI=your_mongodb_connection_string
+   ```
+
+4. **Run development server**
+
+   ```bash
+   npm run dev
+   ```
+
+5. **Build for production**
+   ```bash
+   npm run build
+   npm start
+   ```
+
+## 🧠 Key Design Decisions
+
+### 1. **Integer Money Storage (No Floats!)**
+
+**Why?** Floating-point arithmetic is imprecise (`0.1 + 0.2 = 0.30000000000000004`).
+
+**Solution**: Store amounts as **cents (integers)**.
+
+### 2. **Idempotency Keys for Retry Safety**
+
+**Why?** Network failures, slow connections, or accidental double-clicks can cause duplicate submissions.
+
+**Solution**: Every form submission generates a unique UUID (`idempotencyKey`) that:
+
+- Persists across retries (only rotated on success)
+- Is sent in the `Idempotency-Key` header
+- Backend checks if an expense with this key already exists:
+  - **Exists**: Return the existing record (200 OK)
+  - **New**: Create new expense (201 Created)
+
+### 3. **Cached MongoDB Connection**
+
+**Why?** Next.js hot-reloads in development can create new connections on every change, exhausting database limits.
+
+**Solution**: Cache connection globally using `global.mongooseCache`.
+
+
+## ⚖️ Trade-offs & What I Did **NOT** Implement
+
+| Feature                | Decision                      | Reason                                                     |
+| ---------------------- | ----------------------------- | ---------------------------------------------------------- |
+| **Authentication**     | ❌ Not implemented            | Out of scope for MVP                                       |
+| **Pagination**         | ❌ Not implemented            | Works fine for small datasets; would add for 1000+ records |
+| **Edit/Delete**        | ❌ Not implemented            | Focus was on reliable creation & viewing                   |
+| **Advanced Filtering** | ❌ Date range, multi-category | Basic category filter sufficient for demo                  |
+| **UI Polish**          | Minimal styling               | Prioritized correctness over aesthetics                    |
+| **Unit Tests**         | ❌ Not implemented            | Would add for production (Jest/React Testing Library)      |
+
+
+**Built By Sarvesh with ❤️ for correctness over complexity**
